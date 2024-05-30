@@ -131,20 +131,20 @@ class kijiji():
             
     def post_ad(self, ad_data):
         try:
-            self.current_ad_title = ad_data['Title']
-            self.current_categories = ad_data['Category']
-            self.current_ad_price = ad_data['Price']
+            self.current_ad_title = ad_data['Title'].strip()
+            self.current_categories = ad_data['Category'].strip()
+            self.current_ad_price = ad_data['Price'].strip()
             self.description = ad_data['Description']
-            self.condition = ad_data['Condition']
-            self.phonebrand = ad_data['PhoneBrand']
-            self.phonebrand_carrier = ad_data['PhoneBrandCarrier']
-            self.current_folderName = ad_data['Images_FolderName']
+            self.condition = ad_data['Condition'].strip()
+            self.phonebrand = ad_data['PhoneBrand'].strip()
+            self.phonebrand_carrier = ad_data['PhoneBrandCarrier'].strip()
+            self.current_folderName = ad_data['Images_FolderName'].strip()
             self.Phone = ad_data['Phone']
             self.tags = ad_data['Tags']
-            self.size = ad_data['Size']
-            self.type = ad_data['Type']
-            self.tablet_brand = ad_data['Tablet Brand']
-            self.laptop_Screen_Size = ad_data['laptop Screen Size']
+            self.size = ad_data['Size'].strip()
+            self.type = ad_data['Type'].strip()
+            self.tablet_brand = ad_data['Tablet Brand'].strip()
+            self.laptop_Screen_Size = ad_data['laptop Screen Size'].strip()
 
             self.kjj.refresh()
             time.sleep(5)
@@ -154,7 +154,7 @@ class kijiji():
             
             WebDriverWait(self.kjj, 60).until(EC.presence_of_element_located((By.ID, "AdTitleForm")))
             title = self.kjj.find_element(By.ID,'AdTitleForm')
-            title.send_keys(self.current_ad_title)
+            title.send_keys(self.current_ad_title.strip())
             
             wait = WebDriverWait(self.kjj, 60)
             next_button_link = wait.until(EC.element_to_be_clickable((By.TAG_NAME, "button")))
@@ -256,7 +256,7 @@ class kijiji():
 
                 # Select the option by its value
                 if self.condition:
-                    select.select_by_value(self.condition)
+                    select.select_by_value(self.condition.strip())
             except NoSuchElementException:
                 print("Element for Condition Dropdown Not Found!")
             except Exception as e:
@@ -271,7 +271,7 @@ class kijiji():
 
                 # Select the option by its value
                 if self.phonebrand:
-                    select.select_by_value(self.phonebrand)
+                    select.select_by_value(self.phonebrand.strip())
             except NoSuchElementException:
                 print("Element for Phone Brand Dropdown Not Found!")
             except Exception as e:
@@ -286,7 +286,7 @@ class kijiji():
 
                 # Select the option by its value
                 if self.phonebrand_carrier:
-                    select.select_by_value(self.phonebrand_carrier)
+                    select.select_by_value(self.phonebrand_carrier.strip())
             except NoSuchElementException:
                 print("Element for Phone Brand Carrier Dropdown Not Found!")
             except Exception as e:
@@ -297,7 +297,7 @@ class kijiji():
                 condition_dropdown = self.kjj.find_element(By.ID, 'condition_s')
                 select = Select(condition_dropdown)
                 if self.condition:
-                    select.select_by_value(self.condition)
+                    select.select_by_value(self.condition.strip())
             except NoSuchElementException:
                 print("Condition dropdown not found. Skipping...")
             except Exception as e:
@@ -309,7 +309,7 @@ class kijiji():
                 select = Select(Screen_Size_dropdown)
 
                 if self.size:
-                    select.select_by_value(self.size)
+                    select.select_by_value(self.size.strip())
             except NoSuchElementException:
                 print("Size dropdown not found. Skipping...")
             except Exception as e:
@@ -321,7 +321,7 @@ class kijiji():
                 select = Select(TV_Type_dropdown)
 
                 if self.type:
-                    select.select_by_value(self.type)
+                    select.select_by_value(self.type.strip())
             except NoSuchElementException:
                 print("TV Type dropdown not found. Skipping...")
             except Exception as e:
@@ -331,7 +331,7 @@ class kijiji():
                 Tablet_Brand_Dropdown = self.kjj.find_element(By.ID, 'tabletbrand_s')
                 select = Select(Tablet_Brand_Dropdown)
                 if self.tablet_brand:
-                    select.select_by_value(self.tablet_brand)
+                    select.select_by_value(self.tablet_brand.strip())
             except NoSuchElementException:
                 print("Tablet Brand dropdown not found. Skipping...")  
             except Exception as e:
@@ -342,7 +342,7 @@ class kijiji():
                 Laptop_Screen_Size_dropdown = self.kjj.find_element(By.ID, 'laptopscreensize_s')
                 select = Select(Laptop_Screen_Size_dropdown)
                 if self.laptop_Screen_Size:
-                    select.select_by_value(self.laptop_Screen_Size)
+                    select.select_by_value(self.laptop_Screen_Size.strip())
             except NoSuchElementException:
                 print("Size dropdown not found. Skipping...") 
             except Exception as e:
@@ -353,7 +353,7 @@ class kijiji():
                 WebDriverWait(self.kjj, 60).until(EC.presence_of_element_located((By.ID, "PriceAmount")))
                 price = self.kjj.find_element(By.ID,'PriceAmount')
                 if self.current_ad_price:
-                    price.send_keys(self.current_ad_price)
+                    price.send_keys(self.current_ad_price.strip())
             except NoSuchElementException:
                 print("Price input field not found. Skipping...")
             except Exception as e:
