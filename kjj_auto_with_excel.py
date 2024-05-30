@@ -133,7 +133,7 @@ class kijiji():
         try:
             self.current_ad_title = ad_data['Title'].strip()
             self.current_categories = ad_data['Category'].strip()
-            self.current_ad_price = ad_data['Price'].strip()
+            self.current_ad_price = ad_data['Price']
             self.description = ad_data['Description']
             self.condition = ad_data['Condition'].strip()
             self.phonebrand = ad_data['PhoneBrand'].strip()
@@ -353,7 +353,7 @@ class kijiji():
                 WebDriverWait(self.kjj, 60).until(EC.presence_of_element_located((By.ID, "PriceAmount")))
                 price = self.kjj.find_element(By.ID,'PriceAmount')
                 if self.current_ad_price:
-                    price.send_keys(self.current_ad_price.strip())
+                    price.send_keys(self.current_ad_price)
             except NoSuchElementException:
                 print("Price input field not found. Skipping...")
             except Exception as e:
