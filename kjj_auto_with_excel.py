@@ -131,20 +131,20 @@ class kijiji():
             
     def post_ad(self, ad_data):
         try:
-            self.current_ad_title = ad_data['Title'].strip()
-            self.current_categories = ad_data['Category'].strip()
+            self.current_ad_title = ad_data['Title']
+            self.current_categories = ad_data['Category']
             self.current_ad_price = ad_data['Price']
             self.description = ad_data['Description']
-            self.condition = ad_data['Condition'].strip()
-            self.phonebrand = ad_data['PhoneBrand'].strip()
-            self.phonebrand_carrier = ad_data['PhoneBrandCarrier'].strip()
-            self.current_folderName = ad_data['Images_FolderName'].strip()
+            self.condition = ad_data['Condition']
+            self.phonebrand = ad_data['PhoneBrand']
+            self.phonebrand_carrier = ad_data['PhoneBrandCarrier']
+            self.current_folderName = ad_data['Images_FolderName']
             self.Phone = ad_data['Phone']
             self.tags = ad_data['Tags']
-            self.size = ad_data['Size'].strip()
-            self.type = ad_data['Type'].strip()
-            self.tablet_brand = ad_data['Tablet Brand'].strip()
-            self.laptop_Screen_Size = ad_data['laptop Screen Size'].strip()
+            self.size = ad_data['Size']
+            self.type = ad_data['Type']
+            self.tablet_brand = ad_data['Tablet Brand']
+            self.laptop_Screen_Size = ad_data['laptop Screen Size']
 
             self.kjj.refresh()
             time.sleep(5)
@@ -256,7 +256,7 @@ class kijiji():
 
                 # Select the option by its value
                 if self.condition:
-                    select.select_by_value(self.condition.strip())
+                    select.select_by_value(self.condition)
             except NoSuchElementException:
                 print("Element for Condition Dropdown Not Found!")
             except Exception as e:
@@ -271,7 +271,7 @@ class kijiji():
 
                 # Select the option by its value
                 if self.phonebrand:
-                    select.select_by_value(self.phonebrand.strip())
+                    select.select_by_value(self.phonebrand)
             except NoSuchElementException:
                 print("Element for Phone Brand Dropdown Not Found!")
             except Exception as e:
@@ -286,7 +286,7 @@ class kijiji():
 
                 # Select the option by its value
                 if self.phonebrand_carrier:
-                    select.select_by_value(self.phonebrand_carrier.strip())
+                    select.select_by_value(self.phonebrand_carrier)
             except NoSuchElementException:
                 print("Element for Phone Brand Carrier Dropdown Not Found!")
             except Exception as e:
@@ -297,7 +297,7 @@ class kijiji():
                 condition_dropdown = self.kjj.find_element(By.ID, 'condition_s')
                 select = Select(condition_dropdown)
                 if self.condition:
-                    select.select_by_value(self.condition.strip())
+                    select.select_by_value(self.condition)
             except NoSuchElementException:
                 print("Condition dropdown not found. Skipping...")
             except Exception as e:
@@ -309,7 +309,7 @@ class kijiji():
                 select = Select(Screen_Size_dropdown)
 
                 if self.size:
-                    select.select_by_value(self.size.strip())
+                    select.select_by_value(self.size)
             except NoSuchElementException:
                 print("Size dropdown not found. Skipping...")
             except Exception as e:
@@ -321,7 +321,7 @@ class kijiji():
                 select = Select(TV_Type_dropdown)
 
                 if self.type:
-                    select.select_by_value(self.type.strip())
+                    select.select_by_value(self.type)
             except NoSuchElementException:
                 print("TV Type dropdown not found. Skipping...")
             except Exception as e:
@@ -331,7 +331,7 @@ class kijiji():
                 Tablet_Brand_Dropdown = self.kjj.find_element(By.ID, 'tabletbrand_s')
                 select = Select(Tablet_Brand_Dropdown)
                 if self.tablet_brand:
-                    select.select_by_value(self.tablet_brand.strip())
+                    select.select_by_value(self.tablet_brand)
             except NoSuchElementException:
                 print("Tablet Brand dropdown not found. Skipping...")  
             except Exception as e:
@@ -342,7 +342,7 @@ class kijiji():
                 Laptop_Screen_Size_dropdown = self.kjj.find_element(By.ID, 'laptopscreensize_s')
                 select = Select(Laptop_Screen_Size_dropdown)
                 if self.laptop_Screen_Size:
-                    select.select_by_value(self.laptop_Screen_Size.strip())
+                    select.select_by_value(self.laptop_Screen_Size)
             except NoSuchElementException:
                 print("Size dropdown not found. Skipping...") 
             except Exception as e:
