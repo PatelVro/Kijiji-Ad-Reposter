@@ -64,11 +64,11 @@ class kijiji():
                 # except Exception as e:
                 #     print(f"An unexpected error occurred: {str(e)}")
                 
-                sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
-                sign_in_link.click()
-                print("Successfully found and clicked on the 'Sign In' link.")
-                # Proceed with the rest of your code for logging in
-                self.login(credentials)
+                # sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
+                # sign_in_link.click()
+                # print("Successfully found and clicked on the 'Sign In' link.")
+                # # Proceed with the rest of your code for logging in
+                # self.login(credentials)
 
                 break  # Exit the loop if successful
             except TimeoutException:
