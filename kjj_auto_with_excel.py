@@ -655,7 +655,7 @@ def main():
                 browser.post_ad(ad_data)
                 time.sleep(30)  # Sleep between posting ads
 
-            for row in sheet.iter_rows(min_row=40, values_only=True):
+            for row in sheet.iter_rows(min_row=2, values_only=True):
                 ad_data = {
                     'Title': row[0],
                     'Category': row[1],
