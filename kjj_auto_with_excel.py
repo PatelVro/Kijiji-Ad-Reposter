@@ -17,6 +17,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from selenium.common.exceptions import StaleElementReferenceException
+from webdriver_manager.chrome import ChromeDriverManager
 
 class kijiji():
     
@@ -24,7 +25,9 @@ class kijiji():
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
         #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
-     
+        self.headless.add_argument("--disable-blink-features=AutomationControlled")
+        self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
+        self.headless.add_argument(r'--profile-directory=Default')        
 
     @staticmethod
     def is_page_fully_loaded(driver):
@@ -32,7 +35,10 @@ class kijiji():
 
     def access_kijiji(self,credentials):
         # Set the timeout for the entire script execution to 60 seconds
-        
+        # Set preferences to allow all cookies
+
+
+        # Add argument to disable automation control detection
         self.kjj = webdriver.Chrome(options=self.headless)
 
         while True:
@@ -42,27 +48,29 @@ class kijiji():
                 wait = WebDriverWait(self.kjj, 20)
                 self.next_url('https://www.kijiji.ca/?siteLocale=en_CA')
                 wait = WebDriverWait(self.kjj, 20)
-                try:
-                    # Wait up to 10 seconds for the popup to appear
-                    cookie_banner = WebDriverWait(self.kjj, 10).until(
-                        EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
-                    )
-                    cookie_banner.get_attribute("outerHTML")
+                # try:
+                #     # Wait up to 10 seconds for the popup to appear
+                #     cookie_banner = WebDriverWait(self.kjj, 10).until(
+                #         EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
+                #     )
+                #     cookie_banner.get_attribute("outerHTML")
                     
-                    print(cookie_banner)
-                    # Find the accept button and click it
-                    # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
-                    cookie_banner.click()
+                #     print(cookie_banner)
+                #     # Find the accept button and click it
+                #     # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
+                #     cookie_banner.click()
                     
-                    print("Privacy policy or cookies acceptance bypassed successfully.")
+                #     print("Privacy policy or cookies acceptance bypassed successfully.")
                 
-                except Exception as e:
-                    print(f"An unexpected error occurred: {str(e)}")
+                # except Exception as e:
+                #     print(f"An unexpected error occurred: {str(e)}")
+                
                 sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
                 sign_in_link.click()
                 print("Successfully found and clicked on the 'Sign In' link.")
                 # Proceed with the rest of your code for logging in
                 self.login(credentials)
+
                 break  # Exit the loop if successful
             except TimeoutException:
                 print("Timeout occurred. Unable to find or click on the 'Sign In' link. Retrying...")
@@ -647,7 +655,7 @@ def main():
                 browser.post_ad(ad_data)
                 time.sleep(30)  # Sleep between posting ads
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
+            for row in sheet.iter_rows(min_row=40, values_only=True):
                 ad_data = {
                     'Title': row[0],
                     'Category': row[1],
@@ -670,6 +678,22 @@ def main():
 
                 time.sleep(30)  # Sleep between posting ads
                 
+                account_button = WebDriverWait(browser, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="My Account"]'))
+                )
+                account_button.click()
+
+                # 2. Wait for the dropdown menu to appear and become interactive
+                dropdown_menu = WebDriverWait(browser, 10).until(
+                    EC.visibility_of_element_located((By.CLASS_NAME, 'root-3161363123'))
+                )
+
+                # 3. Locate and click the "Log Out" button within the dropdown
+                logout_button = WebDriverWait(dropdown_menu, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="header-logout"]'))
+                )
+                logout_button.click()
+        
         except Exception as e:
             print(f"Error occurred: {e}")
 
