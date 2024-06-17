@@ -480,7 +480,7 @@ class kijiji():
     
     def delete_ad(self,ad_data):
         wait = WebDriverWait(self.kjj, 60)
-        self.current_ad_title = ad_data['Title']
+        self.current_ad_title = ad_data['Title'].trim()
         self.next_url('https://www.kijiji.ca/m-my-ads/active/1')
         time.sleep(5)   
         div_elements = []
