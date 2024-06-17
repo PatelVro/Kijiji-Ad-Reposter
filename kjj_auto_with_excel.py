@@ -138,14 +138,14 @@ class kijiji():
             
     def post_ad(self, ad_data):
         try:
-            self.current_ad_title = ad_data['Title'].trim()
+            self.current_ad_title = ad_data['Title'].strip()
             self.current_categories = ad_data['Category']
             self.current_ad_price = ad_data['Price']
             self.description = ad_data['Description']
             self.condition = ad_data['Condition']
             self.phonebrand = ad_data['PhoneBrand']
             self.phonebrand_carrier = ad_data['PhoneBrandCarrier']
-            self.current_folderName = ad_data['Images_FolderName']
+            self.current_folderName = ad_data['Images_FolderName'].strip()
             self.Phone = ad_data['Phone']
             self.tags = ad_data['Tags']
             self.size = ad_data['Size']
@@ -480,7 +480,7 @@ class kijiji():
     
     def delete_ad(self,ad_data):
         wait = WebDriverWait(self.kjj, 60)
-        self.current_ad_title = ad_data['Title'].trim()
+        self.current_ad_title = ad_data['Title'].strip()
         self.next_url('https://www.kijiji.ca/m-my-ads/active/1')
         time.sleep(5)   
         div_elements = []
