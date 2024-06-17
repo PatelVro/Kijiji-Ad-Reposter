@@ -138,7 +138,7 @@ class kijiji():
             
     def post_ad(self, ad_data):
         try:
-            self.current_ad_title = ad_data['Title']
+            self.current_ad_title = ad_data['Title'].trim()
             self.current_categories = ad_data['Category']
             self.current_ad_price = ad_data['Price']
             self.description = ad_data['Description']
