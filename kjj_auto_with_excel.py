@@ -23,10 +23,11 @@ class kijiji():
     def __init__(self):
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
-        #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
-        self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
-        self.headless.add_argument(r'--profile-directory=Default')        
+        self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
+        
+        self.headless.add_argument('--no-sandbox')
+        self.headless.add_argument('--disable-dev-shm-usage')
+        self.kjj = webdriver.Chrome(options=self.headless)
 
     @staticmethod
     def is_page_fully_loaded(driver):
@@ -34,10 +35,7 @@ class kijiji():
 
     def access_kijiji(self,credentials):
         # Set the timeout for the entire script execution to 60 seconds
-        # Set preferences to allow all cookies
-
-
-        # Add argument to disable automation control detection
+        
         self.kjj = webdriver.Chrome(options=self.headless)
 
         while True:
@@ -47,29 +45,27 @@ class kijiji():
                 wait = WebDriverWait(self.kjj, 20)
                 self.next_url('https://www.kijiji.ca/?siteLocale=en_CA')
                 wait = WebDriverWait(self.kjj, 20)
-                # try:
-                #     # Wait up to 10 seconds for the popup to appear
-                #     cookie_banner = WebDriverWait(self.kjj, 10).until(
-                #         EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
-                #     )
-                #     cookie_banner.get_attribute("outerHTML")
+                try:
+                    # Wait up to 10 seconds for the popup to appear
+                    cookie_banner = WebDriverWait(self.kjj, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
+                    )
+                    cookie_banner.get_attribute("outerHTML")
                     
-                #     print(cookie_banner)
-                #     # Find the accept button and click it
-                #     # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
-                #     cookie_banner.click()
+                    print(cookie_banner)
+                    # Find the accept button and click it
+                    # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
+                    cookie_banner.click()
                     
-                #     print("Privacy policy or cookies acceptance bypassed successfully.")
+                    print("Privacy policy or cookies acceptance bypassed successfully.")
                 
-                # except Exception as e:
-                #     print(f"An unexpected error occurred: {str(e)}")
-                
-                # sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
-                # sign_in_link.click()
-                # print("Successfully found and clicked on the 'Sign In' link.")
-                # # Proceed with the rest of your code for logging in
-                # self.login(credentials)
-
+                except Exception as e:
+                    print(f"An unexpected error occurred: {str(e)}")
+                sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
+                sign_in_link.click()
+                print("Successfully found and clicked on the 'Sign In' link.")
+                # Proceed with the rest of your code for logging in
+                self.login(credentials)
                 break  # Exit the loop if successful
             except TimeoutException:
                 print("Timeout occurred. Unable to find or click on the 'Sign In' link. Retrying...")
@@ -138,14 +134,14 @@ class kijiji():
             
     def post_ad(self, ad_data):
         try:
-            self.current_ad_title = ad_data['Title'].strip()
+            self.current_ad_title = ad_data['Title']
             self.current_categories = ad_data['Category']
             self.current_ad_price = ad_data['Price']
             self.description = ad_data['Description']
             self.condition = ad_data['Condition']
             self.phonebrand = ad_data['PhoneBrand']
             self.phonebrand_carrier = ad_data['PhoneBrandCarrier']
-            self.current_folderName = ad_data['Images_FolderName'].strip()
+            self.current_folderName = ad_data['Images_FolderName']
             self.Phone = ad_data['Phone']
             self.tags = ad_data['Tags']
             self.size = ad_data['Size']
@@ -161,7 +157,7 @@ class kijiji():
             
             WebDriverWait(self.kjj, 60).until(EC.presence_of_element_located((By.ID, "AdTitleForm")))
             title = self.kjj.find_element(By.ID,'AdTitleForm')
-            title.send_keys(self.current_ad_title.strip())
+            title.send_keys(self.current_ad_title)
             
             wait = WebDriverWait(self.kjj, 60)
             next_button_link = wait.until(EC.element_to_be_clickable((By.TAG_NAME, "button")))
@@ -480,7 +476,7 @@ class kijiji():
     
     def delete_ad(self,ad_data):
         wait = WebDriverWait(self.kjj, 60)
-        self.current_ad_title = ad_data['Title'].strip()
+        self.current_ad_title = ad_data['Title']
         self.next_url('https://www.kijiji.ca/m-my-ads/active/1')
         time.sleep(5)   
         div_elements = []
@@ -605,100 +601,87 @@ class kijiji():
             
 
 def main():
-    for j in range (1,2):
-
-        # for i in range(1, 480):  # Start from 1 and end at 720
-        #     print(f"Iteration {i}")
-        #     time.sleep(60)
-
-        browser = kijiji()
-        file_path = 'credentials.txt'
-        credentials = browser.read_txt(file_path)
-        
-
-        browser.access_kijiji(credentials)
-
+    while True:
         try:
-        # Example usage
-            source_file = "Master Excel.xlsx"
-            source_sheet_index = credentials['sheetNumber']  # Index of the second sheet (1-based)
-            destination_file = "ads_data_new.xlsx"
+            for j in range (1,2):
 
-            browser.copy_sheet(source_file, source_sheet_index, destination_file)
-            # Load data from Excel file
-            print("About to Start")
-            wb = load_workbook('ads_data_new.xlsx')
-            print("Ads_Data Loaded")
-            sheet = wb.active
+                # for i in range(1, 480):  # Start from 1 and end at 720
+                #     print(f"Iteration {i}")
+                #     time.sleep(60)
 
-            # Start from the second row (assuming the first row is headers)
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                ad_data = {
-                    'Title': row[0],
-                    'Category': row[1],
-                    'Price': row[2],
-                    'Description': row[3],
-                    'Condition': row[4],
-                    'PhoneBrand': row[5],
-                    'PhoneBrandCarrier': row[6],
-                    'Images_FolderName': row[7],
-                    'Phone': row[8],
-                    'Tags': row[9], 
-                    'Size': row[10],
-                    'Type': row[11],
-                    'Tablet Brand': row[12],
-                    'laptop Screen Size': row[13]
-                }
-                browser.delete_ad(ad_data)
-                time.sleep(10)
-                browser.post_ad(ad_data)
-                time.sleep(30)  # Sleep between posting ads
-
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                ad_data = {
-                    'Title': row[0],
-                    'Category': row[1],
-                    'Price': row[2],
-                    'Description': row[3],
-                    'Condition': row[4],
-                    'PhoneBrand': row[5],
-                    'PhoneBrandCarrier': row[6],
-                    'Images_FolderName': row[7],
-                    'Phone': row[8],
-                    'Tags': row[9], 
-                    'Size': row[10],
-                    'Type': row[11],
-                    'Tablet Brand': row[12],
-                    'laptop Screen Size': row[13]
-                }
-                if browser.check_Ads(ad_data) != 0:
-                    browser.post_ad(ad_data) 
-                    print("Deleted Ad Posted")
-
-                time.sleep(30)  # Sleep between posting ads
+                browser = kijiji()
+                file_path = 'credentials.txt'
+                credentials = browser.read_txt(file_path)
                 
-                account_button = WebDriverWait(browser, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="My Account"]'))
-                )
-                account_button.click()
 
-                # 2. Wait for the dropdown menu to appear and become interactive
-                dropdown_menu = WebDriverWait(browser, 10).until(
-                    EC.visibility_of_element_located((By.CLASS_NAME, 'root-3161363123'))
-                )
+                browser.access_kijiji(credentials)
 
-                # 3. Locate and click the "Log Out" button within the dropdown
-                logout_button = WebDriverWait(dropdown_menu, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="header-logout"]'))
-                )
-                logout_button.click()
-        
+                # Example usage
+                source_file = "Master Excel.xlsx"
+                source_sheet_index = credentials['sheetNumber']  # Index of the second sheet (1-based)
+                destination_file = "ads_data_new.xlsx"
+
+                browser.copy_sheet(source_file, source_sheet_index, destination_file)
+                # Load data from Excel file
+                print("About to Start")
+                wb = load_workbook('ads_data_new.xlsx')
+                print("Ads_Data Loaded")
+                sheet = wb.active
+
+                    # Start from the second row (assuming the first row is headers)
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    ad_data = {
+                        'Title': row[0],
+                        'Category': row[1],
+                        'Price': row[2],
+                        'Description': row[3],
+                        'Condition': row[4],
+                        'PhoneBrand': row[5],
+                        'PhoneBrandCarrier': row[6],
+                        'Images_FolderName': row[7],
+                        'Phone': row[8],
+                        'Tags': row[9], 
+                        'Size': row[10],
+                        'Type': row[11],
+                        'Tablet Brand': row[12],
+                        'laptop Screen Size': row[13]
+                    }
+                    browser.delete_ad(ad_data)
+                    time.sleep(10)
+                    browser.post_ad(ad_data)
+                    time.sleep(30)  # Sleep between posting ads
+
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    ad_data = {
+                        'Title': row[0],
+                        'Category': row[1],
+                        'Price': row[2],
+                        'Description': row[3],
+                        'Condition': row[4],
+                        'PhoneBrand': row[5],
+                        'PhoneBrandCarrier': row[6],
+                        'Images_FolderName': row[7],
+                        'Phone': row[8],
+                        'Tags': row[9], 
+                        'Size': row[10],
+                        'Type': row[11],
+                        'Tablet Brand': row[12],
+                        'laptop Screen Size': row[13]
+                    }
+                    if browser.check_Ads(ad_data) != 0:
+                        browser.post_ad(ad_data) 
+                        print("Deleted Ad Posted")
+
+                    time.sleep(30)  # Sleep between posting ads                   
+                break
+
         except Exception as e:
             print(f"Error occurred: {e}")
-
-        # for i in range(1, 480):  # Start from 1 and end at 720
-        #     print(f"Iteration {i}")
-        #     time.sleep(60)
+            time.sleep(60)  # Wait before restarting the loop
+                        
+                # for i in range(1, 480):  # Start from 1 and end at 720
+                #     print(f"Iteration {i}")
+                #     time.sleep(60)
 
 if __name__ == '__main__':
     main()
