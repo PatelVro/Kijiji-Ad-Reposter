@@ -23,7 +23,7 @@ class kijiji():
     def __init__(self):
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
-        #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
+        self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
         
         self.headless.add_argument('--no-sandbox')
         self.headless.add_argument('--disable-dev-shm-usage')
