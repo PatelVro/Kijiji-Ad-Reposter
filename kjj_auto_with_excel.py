@@ -3,8 +3,6 @@ import sys
 import time
 import datetime
 import random
-import mysql.connector
-from mysql.connector import Error
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.common.by import By
@@ -20,39 +18,15 @@ from openpyxl import load_workbook
 from openpyxl import Workbook
 from selenium.common.exceptions import StaleElementReferenceException
 
-
 class kijiji():
     
     def __init__(self):
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
-        self.db_connection = None
-        self.db_cursor = None
         #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
-        # self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        # self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
-        # self.headless.add_argument(r'--profile-directory=Default')        
-
-
-    def connect_to_database(self):
-        try:
-            self.db_connection = mysql.connector.connect(
-                host='15.156.26.207',
-                port='3306',
-                user='tryout',
-                password='Superman1431$',
-                database='canadian_outlet_adcenter'
-            )
-            if self.db_connection.is_connected():
-                print("Connected to MySQL database")
-                self.db_cursor = self.db_connection.cursor(dictionary=True)
-            else:
-                print("Failed to connect to MySQL")
-                sys.exit(1)
-        except Error as e:
-            print(f"Error connecting to MySQL: {e}")
-            sys.exit(1)
-
+        self.headless.add_argument("--disable-blink-features=AutomationControlled")
+        self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
+        self.headless.add_argument(r'--profile-directory=Default')        
 
     @staticmethod
     def is_page_fully_loaded(driver):
@@ -61,30 +35,7 @@ class kijiji():
     def access_kijiji(self,credentials):
         # Set the timeout for the entire script execution to 60 seconds
         # Set preferences to allow all cookies
-        try:
-            # Connect to the database
-            self.connect_to_database()
 
-            # Example query to fetch data
-            query = "SELECT * FROM coutlet6@gmail.com"  # Replace with your actual table name
-            self.db_cursor.execute(query)
-            
-            # Fetch all rows from the executed query
-            rows = self.db_cursor.fetchall()
-
-            # Process the fetched data
-            for row in rows:
-                print(row)
-
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-
-        finally:
-            # Close the cursor and connection
-            if self.db_cursor:
-                self.db_cursor.close()
-            if self.db_connection:
-                self.db_connection.close()
 
         # Add argument to disable automation control detection
         self.kjj = webdriver.Chrome(options=self.headless)
@@ -96,28 +47,28 @@ class kijiji():
                 wait = WebDriverWait(self.kjj, 20)
                 self.next_url('https://www.kijiji.ca/?siteLocale=en_CA')
                 wait = WebDriverWait(self.kjj, 20)
-                try:
-                    # Wait up to 10 seconds for the popup to appear
-                    cookie_banner = WebDriverWait(self.kjj, 10).until(
-                        EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
-                    )
-                    cookie_banner.get_attribute("outerHTML")
+                # try:
+                #     # Wait up to 10 seconds for the popup to appear
+                #     cookie_banner = WebDriverWait(self.kjj, 10).until(
+                #         EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
+                #     )
+                #     cookie_banner.get_attribute("outerHTML")
                     
-                    print(cookie_banner)
-                    # Find the accept button and click it
-                    # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
-                    cookie_banner.click()
+                #     print(cookie_banner)
+                #     # Find the accept button and click it
+                #     # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
+                #     cookie_banner.click()
                     
-                    print("Privacy policy or cookies acceptance bypassed successfully.")
+                #     print("Privacy policy or cookies acceptance bypassed successfully.")
                 
-                except Exception as e:
-                    print(f"An unexpected error occurred: {str(e)}")
+                # except Exception as e:
+                #     print(f"An unexpected error occurred: {str(e)}")
                 
-                sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
-                sign_in_link.click()
-                print("Successfully found and clicked on the 'Sign In' link.")
-                # Proceed with the rest of your code for logging in
-                self.login(credentials)
+                # sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
+                # sign_in_link.click()
+                # print("Successfully found and clicked on the 'Sign In' link.")
+                # # Proceed with the rest of your code for logging in
+                # self.login(credentials)
 
                 break  # Exit the loop if successful
             except TimeoutException:
