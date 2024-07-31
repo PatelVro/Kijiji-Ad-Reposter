@@ -3,6 +3,8 @@ import sys
 import time
 import datetime
 import random
+import pymysql
+import json
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.common.by import By
@@ -18,19 +20,76 @@ from openpyxl import load_workbook
 from openpyxl import Workbook
 from selenium.common.exceptions import StaleElementReferenceException
 
+
 class kijiji():
     
     def __init__(self):
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
         #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
-        self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
-        self.headless.add_argument(r'--profile-directory=Default')        
+        # self.headless.add_argument("--disable-blink-features=AutomationControlled")
+        # self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
+        # self.headless.add_argument(r'--profile-directory=Default')   
+        self.db_connection = None     
 
     @staticmethod
     def is_page_fully_loaded(driver):
         return driver.execute_script("return document.readyState") == "complete"
+
+    def connect_db(self,credentials):
+        try:
+            self.email = credentials['username']
+            # Establish the database connection
+            connection = pymysql.connect(
+                host='3.99.73.152',  # Replace with your AWS server's IP address
+                port=3306,           # Replace with your database port if different
+                user='tryout',      # Replace with your database username
+                password='Superman1431$',  # Replace with your database password
+                database='canadian_outlet_adcenter'  # Replace with your database name
+            )
+
+            with connection.cursor() as cursor:
+            
+                # Execute a simple query
+                cursor.execute("SELECT DATABASE();")
+                result = cursor.fetchone()
+                print("You're connected to database: ", result[0])
+                
+                # Execute a test query
+                cursor.execute(f"SELECT * FROM `{self.email}`")
+                
+                # Fetch column names
+                column_names = [desc[0] for desc in cursor.description]
+                
+                # Fetch row data
+                rows = cursor.fetchall()
+                
+                print("Data from `{self.email}` table:")
+                
+                # Convert rows to a list of dictionaries
+                data = [dict(zip(column_names, row)) for row in rows]
+                
+                json_data = json.dumps(data, indent=4)
+                print(json_data)
+                return json_data
+
+                # Closing the connection
+            # connection.close()
+            # print("MariaDB connection is closed")
+        except pymysql.MySQLError as e:
+            print(f"Error while connecting to MariaDB: {e}")
+
+    # def fetch_data(self):
+    #     try:
+    #         with self.db_connection.cursor() as cursor:
+    #             sql = "SELECT * FROM `cbluff170@gmail.com`"
+    #             cursor.execute(sql)
+    #             result = cursor.fetchall()
+    #             print(f"Fetched {len(result)} records from the database.")
+    #             return result
+    #     except Exception as e:
+    #         print(f"Failed to fetch data: {str(e)}")
+    #         return []
 
     def access_kijiji(self,credentials):
         # Set the timeout for the entire script execution to 60 seconds
@@ -47,30 +106,30 @@ class kijiji():
                 wait = WebDriverWait(self.kjj, 20)
                 self.next_url('https://www.kijiji.ca/?siteLocale=en_CA')
                 wait = WebDriverWait(self.kjj, 20)
-                # try:
-                #     # Wait up to 10 seconds for the popup to appear
-                #     cookie_banner = WebDriverWait(self.kjj, 10).until(
-                #         EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
-                #     )
-                #     cookie_banner.get_attribute("outerHTML")
-                    
-                #     print(cookie_banner)
-                #     # Find the accept button and click it
-                #     # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
-                #     cookie_banner.click()
-                    
-                #     print("Privacy policy or cookies acceptance bypassed successfully.")
-                
-                # except Exception as e:
-                #     print(f"An unexpected error occurred: {str(e)}")
-                
-                # sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
-                # sign_in_link.click()
-                # print("Successfully found and clicked on the 'Sign In' link.")
-                # # Proceed with the rest of your code for logging in
-                # self.login(credentials)
 
-                break  # Exit the loop if successful
+                try:
+                    # Wait up to 10 seconds for the popup to appear
+                    cookie_banner = WebDriverWait(self.kjj, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
+                    )
+                    cookie_banner.get_attribute("outerHTML")
+                    
+                    print(cookie_banner)
+                    # Find the accept button and click it
+                    # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
+                    cookie_banner.click()
+                    
+                    print("Privacy policy or cookies acceptance bypassed successfully.")
+                
+                except Exception as e:
+                    print(f"An unexpected error occurred: {str(e)}")
+                
+                sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
+                sign_in_link.click()
+                print("Successfully found and clicked on the 'Sign In' link.")
+                # Proceed with the rest of your code for logging in
+                self.login(credentials)
+                break  # Exit the loop if successful            
             except TimeoutException:
                 print("Timeout occurred. Unable to find or click on the 'Sign In' link. Retrying...")
                 self.kjj.refresh()
@@ -481,6 +540,7 @@ class kijiji():
     def delete_ad(self,ad_data):
         wait = WebDriverWait(self.kjj, 60)
         self.current_ad_title = ad_data['Title'].strip()
+        print(self.current_ad_title)
         self.next_url('https://www.kijiji.ca/m-my-ads/active/1')
         time.sleep(5)   
         div_elements = []
@@ -607,91 +667,106 @@ class kijiji():
 def main():
     for j in range (1,2):
 
+
         # for i in range(1, 480):  # Start from 1 and end at 720
         #     print(f"Iteration {i}")
         #     time.sleep(60)
-
         browser = kijiji()
         file_path = 'credentials.txt'
         credentials = browser.read_txt(file_path)
+        json_data = browser.connect_db(credentials)
+        # ad_data_list = browser.fetch_data()
+        # print(ad_data_list) 
+
+        
         
 
         browser.access_kijiji(credentials)
 
         try:
         # Example usage
-            source_file = "Master Excel.xlsx"
-            source_sheet_index = credentials['sheetNumber']  # Index of the second sheet (1-based)
-            destination_file = "ads_data_new.xlsx"
+            # source_file = "Master Excel.xlsx"
+            # source_sheet_index = credentials['sheetNumber']  # Index of the second sheet (1-based)
+            # destination_file = "ads_data_new.xlsx"
 
-            browser.copy_sheet(source_file, source_sheet_index, destination_file)
+            # browser.copy_sheet(source_file, source_sheet_index, destination_file)
             # Load data from Excel file
             print("About to Start")
-            wb = load_workbook('ads_data_new.xlsx')
+            # wb = load_workbook('ads_data_new.xlsx')
             print("Ads_Data Loaded")
-            sheet = wb.active
-
+            # sheet = wb.active
+            # print(json_data)
             # Start from the second row (assuming the first row is headers)
-            for row in sheet.iter_rows(min_row=2, values_only=True):
+            # for row in sheet.iter_rows(min_row=2, values_only=True):
+            data = json.loads(json_data)
+            print(data)
+            # Iterate over rows
+            for row in data:
+                print("Processing row:", row)    
                 ad_data = {
-                    'Title': row[0],
-                    'Category': row[1],
-                    'Price': row[2],
-                    'Description': row[3],
-                    'Condition': row[4],
-                    'PhoneBrand': row[5],
-                    'PhoneBrandCarrier': row[6],
-                    'Images_FolderName': row[7],
-                    'Phone': row[8],
-                    'Tags': row[9], 
-                    'Size': row[10],
-                    'Type': row[11],
-                    'Tablet Brand': row[12],
-                    'laptop Screen Size': row[13]
+                    'Title': row.get('Title'),
+                    'Category': row.get('Category'),
+                    'Price': row.get('Price'),
+                    'Description': row.get('Description'),
+                    'Condition': row.get('Condition'),
+                    'PhoneBrand': row.get('PhoneBrand'),
+                    'PhoneBrandCarrier': row.get('PhoneBrandCarrier'),
+                    'Images_FolderName': row.get('Images_FolderName'),
+                    'Phone': row.get('Phone'),
+                    'Tags': row.get('Tags'),
+                    'Size': row.get('Size'),
+                    'Type': row.get('Type'),
+                    'Tablet Brand': row.get('Tablet Brand'),
+                    'laptop Screen Size': row.get('laptop Screen Size')
                 }
+            
+                print(ad_data)
                 browser.delete_ad(ad_data)
+                print("Ad Deleted")
                 time.sleep(10)
+                
                 browser.post_ad(ad_data)
+                print("Ad Posted")
                 time.sleep(30)  # Sleep between posting ads
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                ad_data = {
-                    'Title': row[0],
-                    'Category': row[1],
-                    'Price': row[2],
-                    'Description': row[3],
-                    'Condition': row[4],
-                    'PhoneBrand': row[5],
-                    'PhoneBrandCarrier': row[6],
-                    'Images_FolderName': row[7],
-                    'Phone': row[8],
-                    'Tags': row[9], 
-                    'Size': row[10],
-                    'Type': row[11],
-                    'Tablet Brand': row[12],
-                    'laptop Screen Size': row[13]
-                }
-                if browser.check_Ads(ad_data) != 0:
-                    browser.post_ad(ad_data) 
-                    print("Deleted Ad Posted")
+            # for row in sheet.iter_rows(min_row=2, values_only=True):
+            #     ad_data = {
+            #         'Title': row[0],
+            #         'Category': row[1],
+            #         'Price': row[2],
+            #         'Description': row[3],
+            #         'Condition': row[4],
+            #         'PhoneBrand': row[5],
+            #         'PhoneBrandCarrier': row[6],
+            #         'Images_FolderName': row[7],
+            #         'Phone': row[8],
+            #         'Tags': row[9], 
+            #         'Size': row[10],
+            #         'Type': row[11],
+            #         'Tablet Brand': row[12],
+            #         'laptop Screen Size': row[13]
+            #     }
+            #     if browser.check_Ads(ad_data) != 0:
+            #         browser.post_ad(ad_data) 
+            #         print("Deleted Ad Posted")
 
                 time.sleep(30)  # Sleep between posting ads
                 
-                account_button = WebDriverWait(browser, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="My Account"]'))
-                )
-                account_button.click()
+                # account_button = WebDriverWait(browser, 10).until(
+                #     EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[aria-label="My Account"]'))
+                # )
+                # account_button.click()
 
-                # 2. Wait for the dropdown menu to appear and become interactive
-                dropdown_menu = WebDriverWait(browser, 10).until(
-                    EC.visibility_of_element_located((By.CLASS_NAME, 'root-3161363123'))
-                )
+                # # 2. Wait for the dropdown menu to appear and become interactive
+                # dropdown_menu = WebDriverWait(browser, 10).until(
+                #     EC.visibility_of_element_located((By.CLASS_NAME, 'root-3161363123'))
+                # )
 
-                # 3. Locate and click the "Log Out" button within the dropdown
-                logout_button = WebDriverWait(dropdown_menu, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="header-logout"]'))
-                )
-                logout_button.click()
+                # # 3. Locate and click the "Log Out" button within the dropdown
+                # logout_button = WebDriverWait(dropdown_menu, 10).until(
+                #     EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="header-logout"]'))
+                # )
+                # logout_button.click()
         
         except Exception as e:
             print(f"Error occurred: {e}")
