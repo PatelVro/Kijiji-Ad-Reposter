@@ -27,9 +27,9 @@ class kijiji():
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
         #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
-        # self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        # self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
-        # self.headless.add_argument(r'--profile-directory=Default')   
+        self.headless.add_argument("--disable-blink-features=AutomationControlled")
+        self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
+        self.headless.add_argument(r'--profile-directory=Default')   
         self.db_connection = None     
 
     @staticmethod
