@@ -107,28 +107,28 @@ class kijiji():
                 self.next_url('https://www.kijiji.ca/?siteLocale=en_CA')
                 wait = WebDriverWait(self.kjj, 20)
 
-                try:
-                    # Wait up to 10 seconds for the popup to appear
-                    cookie_banner = WebDriverWait(self.kjj, 10).until(
-                        EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
-                    )
-                    cookie_banner.get_attribute("outerHTML")
+                # try:
+                #     # Wait up to 10 seconds for the popup to appear
+                #     cookie_banner = WebDriverWait(self.kjj, 10).until(
+                #         EC.presence_of_element_located((By.XPATH, "//*[@id='MainContainer']/div[1]/div/div[2]/div[2]/button"))
+                #     )
+                #     cookie_banner.get_attribute("outerHTML")
                     
-                    print(cookie_banner)
-                    # Find the accept button and click it
-                    # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
-                    cookie_banner.click()
+                #     print(cookie_banner)
+                #     # Find the accept button and click it
+                #     # close_button = cookie_banner.find_element_by_xpath("//button[contains(text(), 'Close')]")
+                #     cookie_banner.click()
                     
-                    print("Privacy policy or cookies acceptance bypassed successfully.")
+                #     print("Privacy policy or cookies acceptance bypassed successfully.")
                 
-                except Exception as e:
-                    print(f"An unexpected error occurred: {str(e)}")
+                # except Exception as e:
+                #     print(f"An unexpected error occurred: {str(e)}")
                 
-                sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
-                sign_in_link.click()
-                print("Successfully found and clicked on the 'Sign In' link.")
-                # Proceed with the rest of your code for logging in
-                self.login(credentials)
+                # sign_in_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Sign In")))
+                # sign_in_link.click()
+                # print("Successfully found and clicked on the 'Sign In' link.")
+                # # Proceed with the rest of your code for logging in
+                # self.login(credentials)
                 break  # Exit the loop if successful            
             except TimeoutException:
                 print("Timeout occurred. Unable to find or click on the 'Sign In' link. Retrying...")
