@@ -542,7 +542,7 @@ class kijiji():
         wait = WebDriverWait(self.kjj, 60)
         self.current_ad_title = ad_data['Title'].strip()
         print(self.current_ad_title)
-        self.next_url('https://www.kijiji.ca/m-my-ads/active/1')
+        self.next_url('https://www.kijiji.ca/m-my-ads/active/1?siteLocale=en_CA')
         time.sleep(5)   
         div_elements = []
         while True:
