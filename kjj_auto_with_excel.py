@@ -30,6 +30,7 @@ class kijiji():
         self.headless.add_argument("--disable-blink-features=AutomationControlled")
         self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data") #Path to your chrome profile
         self.headless.add_argument(r'--profile-directory=Default')   
+        self.headless.add_argument("--lang=en-US")
         self.db_connection = None     
 
     @staticmethod
