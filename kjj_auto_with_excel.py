@@ -45,7 +45,7 @@ class kijiji():
                 host='3.99.73.152',  # Replace with your AWS server's IP address
                 port=3306,           # Replace with your database port if different
                 user='tryout',      # Replace with your database username
-                password='Superman1431$',  # Replace with your database password
+                password='4@duBS(D2iWg!2f/',  # Replace with your database password
                 database='canadian_outlet_adcenter'  # Replace with your database name
             )
 
