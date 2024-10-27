@@ -42,11 +42,11 @@ class kijiji():
             self.email = credentials['username']
             # Establish the database connection
             connection = pymysql.connect(
-                host='3.99.73.152',  # Replace with your AWS server's IP address
-                port=3306,           # Replace with your database port if different
-                user='tryout',      # Replace with your database username
-                password='4@duBS(D2iWg!2f/',  # Replace with your database password
-                database='canadian_outlet_adcenter'  # Replace with your database name
+                host=config['host'],
+                port=config['port'],
+                user=config['user'],
+                password=config['password'],
+                database=config['database']
             )
 
             with connection.cursor() as cursor:
