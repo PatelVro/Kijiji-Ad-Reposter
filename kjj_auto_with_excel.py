@@ -19,7 +19,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from selenium.common.exceptions import StaleElementReferenceException
-
+from db_config import config
 
 class kijiji():
     
