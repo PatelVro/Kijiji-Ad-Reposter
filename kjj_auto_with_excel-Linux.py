@@ -26,7 +26,8 @@ from db_config import config
 class kijiji():
     
     def __init__(self):
-        user_data_dir = os.path.join(os.getcwd(), 'chrome-user-data')
+        self.user_data_dir = os.path.join(os.getcwd(), f'chrome-user-data-{int(time.time())}')
+
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
         #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
