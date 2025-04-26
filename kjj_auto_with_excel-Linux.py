@@ -32,7 +32,7 @@ class kijiji():
         self.headless = ChromeOptions()
         #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
         self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        self.headless.add_argument(f"--user-data-dir={user_data_dir}") #Path to your chrome profile
+        self.headless.add_argument(f"--user-data-dir={self.user_data_dir}") #Path to your chrome profile
         self.headless.add_argument(r'--profile-directory=Default')   
         self.headless.add_argument("--lang=en-US")
         self.db_connection = None     
