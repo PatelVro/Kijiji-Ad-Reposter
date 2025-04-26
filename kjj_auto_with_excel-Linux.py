@@ -96,7 +96,9 @@ class kijiji():
         # Set the timeout for the entire script execution to 60 seconds
         # Set preferences to allow all cookies
 
+        chrome_options.binary_location = "/usr/bin/google-chrome"  # Important: Point to your chrome
 
+        service = Service(executable_path="/usr/local/bin/chromedriver")
         # Add argument to disable automation control detection
         self.kjj = webdriver.Chrome(options=self.headless)
 
