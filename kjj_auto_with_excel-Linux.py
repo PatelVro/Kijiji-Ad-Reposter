@@ -26,16 +26,40 @@ from db_config import config
 class kijiji():
     
     def __init__(self):
-        self.user_data_dir = os.path.join(os.getcwd(), f'chrome-user-data-{int(time.time())}')
+        # Define the base directory for Chrome profiles
+        self.base_profile_dir = os.path.join(os.getcwd(), 'chrome-user-data')
 
+        # Check if the profile directory exists
+        profile_exists = os.path.exists(self.base_profile_dir)
+        
+        if not profile_exists:
+            # If the profile doesn't exist, create a new unique profile folder
+            self.user_data_dir = os.path.join(self.base_profile_dir, f'profile-{int(time.time())}')
+            os.makedirs(self.user_data_dir)  # Create the directory
+        else:
+            # If the profile exists, use the existing one
+            self.user_data_dir = self.base_profile_dir  # Use the default profile directory
+
+        # Get the current working directory
         self.current_dir = os.getcwd()
+
+        # Set up Chrome options
         self.headless = ChromeOptions()
-        #self.headless.add_argument("--headless") # Set headless mode within the FirefoxOptions object
+
+        # Disable automation-controlled features (useful for stealth mode)
         self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        self.headless.add_argument(f"--user-data-dir={self.user_data_dir}") #Path to your chrome profile
-        self.headless.add_argument(r'--profile-directory=Default')   
+
+        # Set the user data directory to the profile directory
+        self.headless.add_argument(f"--user-data-dir={self.user_data_dir}")  # Path to your chrome profile
+
+        # Optional: Specify the profile directory (e.g., Default profile)
+        self.headless.add_argument(r'--profile-directory=Default')
+
+        # Set language to English (US)
         self.headless.add_argument("--lang=en-US")
-        self.db_connection = None     
+
+        # Initialize database connection (if any)
+        self.db_connection = None 
 
     @staticmethod
     def is_page_fully_loaded(driver):
