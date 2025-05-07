@@ -663,207 +663,78 @@ class kijiji():
         return False
 
 
-    def delete_ad(self, ad_data):
-        wait = WebDriverWait(self.kjj, 20) # Reduced from 60, adjust if needed
-        self.current_ad_title = ad_data.get('Title', '').strip()
-        if not self.current_ad_title:
-            print("No ad title provided for deletion. Skipping.")
-            return
-
-        print(f"Attempting to delete ad: '{self.current_ad_title}'")
-        # Navigate to the first page of active ads
+    def delete_ad(self,ad_data):
+        wait = WebDriverWait(self.kjj, 60)
+        self.current_ad_title = ad_data['Title'].strip()
+        print(self.current_ad_title)
         self.next_url('https://www.kijiji.ca/m-my-ads/active/1?siteLocale=en_CA')
-        time.sleep(3) # Allow page to load initially
-
-        page_count = 0
-        max_pages_to_check = 5 # Limit to prevent infinite loops on problematic sites
-
-        while page_count < max_pages_to_check:
-            page_count += 1
-            print(f"Searching for ad '{self.current_ad_title}' on active ads page {page_count}...")
-            ad_found_on_page_and_deleted = False
+        time.sleep(5)   
+        div_elements = []
+        while True:
             try:
-                # Wait for the table body to ensure ads (if any) are loaded
-                tbody_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'tbody')))
-                # Get all rows in the current view of the table
-                tr_elements = tbody_element.find_elements(By.TAG_NAME, 'tr')
+                tbody_element = self.kjj.find_element(By.TAG_NAME, 'tbody')
+                tr_elements = tbody_element.find_elements(By.TAG_NAME,'tr')
 
-                if not tr_elements and page_count == 1 : # No ads listed at all on the first page
-                    print("No ads found in the active ads list.")
-                    return # No ads to delete
-
-                ad_row_to_delete = None
                 for tr_element in tr_elements:
-                    # Look for the ad title within links in this row
-                    # More robust: find links with class 'title' and check their text
-                    try:
-                        # Example: Kijiji often has title in an <a> tag with a class like 'title'
-                        # Adjust selector based on actual Kijiji structure if this fails
-                        title_links = tr_element.find_elements(By.XPATH, ".//a[contains(@class, 'title') or contains(@class, 'AdTitle')]")
-                        for link in title_links:
-                            if self.current_ad_title in link.text: # Check normalized text if issues with spacing
-                                print(f"Found ad title '{self.current_ad_title}' in a row.")
-                                ad_row_to_delete = tr_element
-                                break
-                        if ad_row_to_delete:
-                            break
-                    except StaleElementReferenceException:
-                        print("Stale element while searching for ad title in a row. Re-evaluating page.")
-                        self.take_screenshot(self.kjj, f"stale_ad_title_search_page_{page_count}")
-                        # Break from this inner loop and let outer loop retry finding tbody/trs for current page attempt
-                        tr_elements = [] # Reset to re-fetch if stale happened early
-                        break 
-                    except Exception as e_find_title:
-                        print(f"Minor error finding title in a row: {e_find_title}. Skipping row.")
-                        continue
-
-                if ad_row_to_delete:
-                    try:
-                        # The original XPath for delete button was: './/td[8]/div[1]/div[2]/div/div[2]/button/span'
-                        # This is extremely specific and likely to break.
-                        # Kijiji often uses a "kebab menu" (three dots) or an "Actions" button.
-                        # Then "Delete" is an option in that menu.
-
-                        # Attempt 1: Find a button that looks like an actions menu within the ad row
-                        actions_menu_button_xpath_options = [
-                            ".//button[contains(@aria-label, 'Actions for ad') or contains(@aria-label, 'action') or @data-testid='ad-actions-menu']", # Common aria-labels or test IDs
-                            ".//button[.//span[contains(text(), 'Action') or contains(@class, 'icon-dot')]]" # Button with "Action" text or a dot icon
-                        ]
-                        actions_menu_button = None
-                        for xpath_opt in actions_menu_button_xpath_options:
-                            try:
-                                actions_menu_button = WebDriverWait(ad_row_to_delete, 5).until(
-                                    EC.element_to_be_clickable((By.XPATH, xpath_opt))
-                                )
-                                if actions_menu_button: break
-                            except TimeoutException:
-                                continue
-                        
-                        if not actions_menu_button: # If no actions menu, look for a direct delete button
-                            direct_delete_button_xpath_options = [
-                                ".//button[contains(normalize-space(), 'Delete') or contains(@aria-label,'Delete')]",
-                                ".//a[contains(normalize-space(), 'Delete') or contains(@aria-label,'Delete')]" # Sometimes it's a link styled as button
-                            ]
-                            delete_trigger = None
-                            for xpath_opt in direct_delete_button_xpath_options:
+                    div_elements = tr_element.find_elements(By.XPATH,'.//*')   
+                    found_ad_to_delete = False
+                    if not div_elements:
+                        print("No div elements found.")
+                    else:        
+                        for div_element in div_elements:
+                            links = div_element.find_elements(By.XPATH, ".//a[@href]")
+                            for link in links:
+                                if self.current_ad_title in link.get_attribute("innerHTML"):    
+                                    try:
+                                        delete_button = tr_element.find_element(By.XPATH, './/td[8]/div[1]/div[2]/div/div[2]/button/span')
+                                        delete_button.click()
+                                        found_ad_to_delete = True
+                                        break
+                                    except NoSuchElementException:
+                                        print("Delete button not found for the ad.")
+                                    except Exception as e:
+                                        print(f"An unexpected error occurred: {str(e)}")
+                            if found_ad_to_delete:
                                 try:
-                                    delete_trigger = WebDriverWait(ad_row_to_delete, 5).until(
-                                        EC.element_to_be_clickable((By.XPATH, xpath_opt))
-                                    )
-                                    if delete_trigger: break
+                                    button = WebDriverWait(self.kjj, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Prefer not to say"]')))
+                                    button.click()
+                                    time.sleep(2)
+                                    button = WebDriverWait(self.kjj, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Delete My Ad"]')))
+                                    button.click()
+                                    time.sleep(2)
+                                    print('Ad deleted.')
+                                    button = WebDriverWait(self.kjj, 10).until(EC.element_to_be_clickable((By.ID, 'modalCloseButton')))
+                                    button.click()
+                                    time.sleep(2)
+                                    self.kjj.refresh()
+                                    time.sleep(10)
+                                    return
                                 except TimeoutException:
-                                    continue
-                            if not delete_trigger:
-                                print(f"Could not find Actions menu or direct Delete button for ad '{self.current_ad_title}'. Original XPath might be needed if structure is very specific.")
-                                self.take_screenshot(self.kjj, f"no_delete_action_found_{self.current_ad_title[:15]}")
-                                return # Can't proceed with this ad
+                                    print('Timeout occurred while deleting the ad.')
+                                except Exception as e:
+                                    print(f"An unexpected error occurred: {str(e)}")
+                            else:
+                                print('Ad with title "{}" not found for deletion.'.format(self.current_ad_title))
 
-                        else: # Actions menu found
-                            print("Clicked Actions menu.")
-                            actions_menu_button.click()
-                            time.sleep(1) # Wait for menu to open
-                            # Now find the "Delete" option within the opened menu
-                            delete_option_in_menu = WebDriverWait(self.kjj, 10).until( # Search entire page for opened menu
-                                EC.element_to_be_clickable((By.XPATH, "//button[normalize-space()='Delete' and not(@disabled)] | //li[normalize-space()='Delete']//button | //a[normalize-space()='Delete']"))
-                                # The above XPath looks for a button or link with text "Delete" that's likely part of a dropdown/menu
-                            )
-                            delete_trigger = delete_option_in_menu
-                        
-                        print(f"Clicking delete trigger for ad '{self.current_ad_title}'.")
-                        delete_trigger.click()
-                        ad_found_on_page_and_deleted = True # Tentatively true, confirmation steps follow
-
-                        # Confirmation steps (Prefer not to say -> Delete My Ad -> Close modal)
-                        button_prefer_not = WebDriverWait(self.kjj, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Prefer not to say"]')))
-                        button_prefer_not.click()
-                        print("Clicked 'Prefer not to say'.")
-                        time.sleep(0.5) # Short pause
-
-                        button_delete_final = WebDriverWait(self.kjj, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Delete My Ad"]')))
-                        button_delete_final.click()
-                        print("Clicked 'Delete My Ad' (final confirmation).")
-                        time.sleep(0.5)
-
-                        # Wait for modal to close or a success message. Original used 'modalCloseButton' ID.
-                        # It's better to wait for the modal to disappear or for a confirmation of deletion if available.
-                        try:
-                            close_button_modal = WebDriverWait(self.kjj, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@id='modalCloseButton' or contains(@aria-label, 'Close')]")))
-                            close_button_modal.click()
-                            print("Closed delete confirmation modal.")
-                        except TimeoutException:
-                            print("Delete confirmation modal close button not found or not clickable. Assuming modal closed or auto-disappeared.")
-                            # Could also wait for modal to become invisible:
-                            # WebDriverWait(self.kjj, 5).until_not(EC.visibility_of_element_located((By.XPATH, "XPATH_OF_MODAL_CONTAINER")))
-
-                        print(f"Ad '{self.current_ad_title}' successfully processed for deletion.")
-                        time.sleep(3) # Allow page to refresh/update
-                        # self.kjj.refresh() # Optional explicit refresh
-                        # time.sleep(5)
-                        return # Ad handled, exit delete_ad
-
-                    except TimeoutException as e_delete_process:
-                        print(f"Timeout during delete process steps for '{self.current_ad_title}': {e_delete_process}")
-                        self.take_screenshot(self.kjj, f"timeout_delete_process_{self.current_ad_title[:15]}")
-                        return # Stop if crucial delete step fails
-                    except ElementClickInterceptedException as eci_del_steps:
-                        print(f"Click intercepted during delete confirmation for '{self.current_ad_title}': {eci_del_steps}")
-                        self.take_screenshot(self.kjj, f"click_intercepted_delete_confirm_{self.current_ad_title[:15]}")
-                        # Could try JS clicks here if this is common
-                        return
-                    except Exception as e_delete_final:
-                        print(f"An unexpected error occurred during final delete steps for '{self.current_ad_title}': {str(e_delete_final)}")
-                        self.take_screenshot(self.kjj, f"error_delete_final_steps_{self.current_ad_title[:15]}")
-                        return
-
-                if not ad_row_to_delete: # Ad not found on current page
-                    print(f"Ad '{self.current_ad_title}' not found on page {page_count}.")
-                    # Try to navigate to the next page
-                    try:
-                        # Look for a "Next" button that is not disabled.
-                        # XPath for enabled next button: //a[contains(@class, 'pagination-next') and not(contains(@class, 'disabled'))]
-                        # or a more general one: //a[@aria-label="Next page" or span[text()="Next"]]
-                        next_page_button_xpath = '//a[(contains(@class, "pagination-next") or @aria-label="Next page" or descendant::span[normalize-space()="Next"]) and not(contains(@class,"disabled")) and not(@disabled)]'
-                        next_page_link = WebDriverWait(self.kjj, 5).until(
-                            EC.element_to_be_clickable((By.XPATH, next_page_button_xpath))
-                        )
-                        current_url_before_next = self.kjj.current_url
-                        next_page_link.click()
-                        # Wait for URL to change to confirm pagination
-                        WebDriverWait(self.kjj, 10).until(EC.url_changes(current_url_before_next))
-                        print("Navigated to the next page of ads.")
-                        time.sleep(3) # Wait for next page to load
-                        continue # Continue to next iteration of while loop (next page)
-                    except TimeoutException:
-                        print("No 'Next' page button found or it's disabled. Assuming end of ad list.")
-                        self.take_screenshot(self.kjj, "no_next_page_button_delete")
-                        return # Ad not found after checking all available pages
-                    except ElementClickInterceptedException as eci_next_page:
-                        print(f"Click intercepted when trying to go to next page for deletion: {eci_next_page}")
-                        self.take_screenshot(self.kjj, "click_intercepted_next_page_delete")
-                        return # Cannot proceed reliably
-                    except Exception as e_paginate:
-                        print(f"Error during pagination in delete_ad: {e_paginate}")
-                        self.take_screenshot(self.kjj, f"error_pagination_delete_page_{page_count}")
-                        return
-
-            except TimeoutException: # Timeout for tbody_element
-                print(f"Timeout waiting for ad table (tbody) on page {page_count}. Ad deletion cannot proceed for '{self.current_ad_title}'.")
-                self.take_screenshot(self.kjj, f"timeout_tbody_delete_page_{page_count}")
-                return
+                next_active_page = self.kjj.find_element(By.XPATH, '/html/body/div[3]/div[4]/div/div/div/div/div[3]/a')
+                if next_active_page.text.strip() == "Next":
+                    next_active_page.click()
+                else:
+                    return
+            
             except StaleElementReferenceException:
-                print(f"StaleElementReferenceException encountered on page {page_count} of delete_ad. Retrying this page.")
-                self.take_screenshot(self.kjj, f"stale_element_delete_page_{page_count}")
-                page_count -= 1 # Decrement to retry current page number
-                time.sleep(2) # Brief pause before retry
+                # Handle stale element exception by re-finding the element
+                print("Stale element reference. Retrying...")
                 continue
-            except Exception as e_outer_delete:
-                print(f"An unexpected error occurred in delete_ad on page {page_count} for ad '{self.current_ad_title}': {str(e_outer_delete)}")
-                self.take_screenshot(self.kjj, f"error_delete_ad_page_{page_count}")
-                return # Stop if a major error occurs
 
-        if not ad_found_on_page_and_deleted: # Loop finished (max pages checked)
-            print(f"Ad '{self.current_ad_title}' not found for deletion after checking {max_pages_to_check} pages.")
+            except NoSuchElementException:
+                print("Element not found.")
+                return
+                # Handle the situation here, such as returning from the method or raising an error
 
+            except Exception as e:
+                print(f"An unexpected error occurred: {str(e)}")
+                return
 
     def check_Ads(self, ad_data): # check_ads is more Pythonic
         wait = WebDriverWait(self.kjj, 10) # Shorter wait for checks
