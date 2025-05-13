@@ -16,6 +16,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service  # Add this import if not present
+
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from selenium.common.exceptions import StaleElementReferenceException
@@ -30,10 +32,16 @@ class kijiji():
         self.current_dir = os.getcwd()
         self.headless = ChromeOptions()
 
+        self.user_data_dir = os.path.join(self.current_dir, "chrome_user_data")
+        if not os.path.exists(self.user_data_dir):
+            os.makedirs(self.user_data_dir)
+
+        self.headless = ChromeOptions()
+
+        # ✅ Use the local user-data-dir path
+        self.headless.add_argument(f"user-data-dir={self.user_data_dir}")
+        self.headless.add_argument('--profile-directory=Default')
         self.headless.add_argument("--disable-blink-features=AutomationControlled")
-        # REVERTED: Keep original user-data-dir and profile-directory paths
-        self.headless.add_argument(r"user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data")
-        self.headless.add_argument(r'--profile-directory=Default')
         self.headless.add_argument("--lang=en-US")
         self.db_connection = None
         # REVERTED: Screenshots will be saved in self.current_dir directly
@@ -101,7 +109,10 @@ class kijiji():
 
 
     def access_kijiji(self, credentials):
-        self.kjj = webdriver.Chrome(options=self.headless)
+
+        driver_path = os.path.join(self.current_dir, ".\chromedriver-win64\chromedriver.exe")
+        service = Service(driver_path)
+        self.kjj = webdriver.Chrome(service=service,options=self.headless)
 
         while True:
             try:
@@ -736,6 +747,90 @@ class kijiji():
                 print(f"An unexpected error occurred: {str(e)}")
                 return
 
+    def delete_all_ads(self):
+        wait = WebDriverWait(self.kjj, 60)
+        print("Navigating to active ads page...")
+        self.next_url('https://www.kijiji.ca/m-my-ads/active/1?siteLocale=en_CA')
+        time.sleep(5)
+
+        while True:
+            try:
+                tbody_element = self.kjj.find_element(By.TAG_NAME, 'tbody')
+                tr_elements = tbody_element.find_elements(By.TAG_NAME, 'tr')
+
+                if not tr_elements:
+                    print("No ads found on this page.")
+                    return
+
+                for tr_element in tr_elements:
+                    try:
+                        delete_button = tr_element.find_element(By.XPATH, './/td[8]/div[1]/div[2]/div/div[2]/button/span')
+                        delete_button.click()
+                        print("Delete button clicked.")
+
+                        # Confirm deletion steps
+                        try:
+                            confirm_btn1 = WebDriverWait(self.kjj, 10).until(
+                                EC.element_to_be_clickable((By.XPATH, '//button[text()="Prefer not to say"]'))
+                            )
+                            confirm_btn1.click()
+                            time.sleep(2)
+
+                            confirm_btn2 = WebDriverWait(self.kjj, 10).until(
+                                EC.element_to_be_clickable((By.XPATH, '//button[text()="Delete My Ad"]'))
+                            )
+                            confirm_btn2.click()
+                            time.sleep(2)
+
+                            close_modal = WebDriverWait(self.kjj, 10).until(
+                                EC.element_to_be_clickable((By.ID, 'modalCloseButton'))
+                            )
+                            close_modal.click()
+                            time.sleep(3)
+
+                            print("Ad deleted successfully.")
+                            self.kjj.refresh()
+                            time.sleep(10)
+                            break  # Refresh page and restart loop to get updated list of ads
+
+                        except TimeoutException:
+                            print("Timeout while confirming delete.")
+                        except Exception as e:
+                            print(f"Error during delete confirmation: {e}")
+
+                    except NoSuchElementException:
+                        print("Delete button not found for this ad. Skipping...")
+                    except Exception as e:
+                        print(f"Error while attempting to delete an ad: {e}")
+
+                else:
+                    # If loop completes without 'break', it means no ads were deleted, check next page.
+                    try:
+                        next_active_page = self.kjj.find_element(By.XPATH, '/html/body/div[3]/div[4]/div/div/div/div/div[3]/a')
+                        if next_active_page.text.strip() == "Next":
+                            next_active_page.click()
+                            print("Navigating to next page of ads...")
+                            time.sleep(5)
+                        else:
+                            print("No more pages. Finished deleting ads.")
+                            return
+                    except NoSuchElementException:
+                        print("No Next button found. All ads processed.")
+                        return
+
+            except StaleElementReferenceException:
+                print("Stale element reference. Retrying...")
+                continue
+
+            except NoSuchElementException:
+                print("No ads table found. Possibly all ads deleted.")
+                return
+
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return
+
+
     def check_Ads(self, ad_data): # check_ads is more Pythonic
         wait = WebDriverWait(self.kjj, 10) # Shorter wait for checks
         self.current_ad_title = ad_data.get('Title', '').strip()
@@ -875,6 +970,14 @@ def main():
 
     print("Kijiji login successful.")
 
+    try:
+        browser_instance.delete_all_ads()
+    except Exception as e:
+        print(f"Error deleting ads: {e}")
+        if hasattr(browser_instance, 'kjj') and browser_instance.kjj:
+            browser_instance.take_screenshot(browser_instance.kjj, "error_delete_ads")
+        return
+
     # --- Ad Processing ---
     try:
         print("Loading ad data from database JSON...")
@@ -888,6 +991,7 @@ def main():
         print(f"Found {num_ads} ad(s) to process from the database.")
 
         for index, ad_row_data in enumerate(ads_to_process):
+            browser_instance.next_url('https://www.kijiji.ca/m-my-ads/active/1')
             print(f"\n--- Processing Ad {index + 1} of {num_ads} ---")
             if not isinstance(ad_row_data, dict):
                 print(f"Skipping ad entry {index + 1} as it's not a valid dictionary: {ad_row_data}")
@@ -918,10 +1022,10 @@ def main():
             print(f"Processing Ad Title: '{current_ad_details['Title']}'")
 
             # Delete Ad
-            print(f"Attempting to delete ad (if it exists): '{current_ad_details['Title']}'")
-            browser_instance.delete_ad(current_ad_details)
-            print(f"Deletion process finished for '{current_ad_details['Title']}'.")
-            time.sleep(10) # Original sleep after delete
+            # print(f"Attempting to delete ad (if it exists): '{current_ad_details['Title']}'")
+            # browser_instance.delete_ad(current_ad_details)
+            # print(f"Deletion process finished for '{current_ad_details['Title']}'.")
+            # time.sleep(10) # Original sleep after delete
 
             # Post Ad
             print(f"Attempting to post ad: '{current_ad_details['Title']}'")
