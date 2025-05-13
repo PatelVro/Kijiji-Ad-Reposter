@@ -959,14 +959,14 @@ def main():
         print("Browser (self.kjj) was not initialized by access_kijiji. Cannot proceed.")
         return
 
-    # print("Attempting to log into Kijiji...")
-    # login_successful = browser_instance.login(credentials_data)
+    print("Attempting to log into Kijiji...")
+    login_successful = browser_instance.login(credentials_data)
 
-    # if not login_successful:
-    #     print("Kijiji login failed. Please check credentials or website status. Exiting.")
-    #     if browser_instance.kjj:
-    #         browser_instance.kjj.quit()
-    #     return
+    if not login_successful:
+        print("Kijiji login failed. Please check credentials or website status. Exiting.")
+        if browser_instance.kjj:
+            browser_instance.kjj.quit()
+        return
 
     print("Kijiji login successful.")
 
