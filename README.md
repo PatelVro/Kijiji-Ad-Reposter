@@ -56,9 +56,6 @@ Basic HTML/CSS frontend
 🔗 GitHub Repository (insert link)
 🖼️ Screenshots or short demo video (optional)
 
-🙏 Special Thanks
-Shoutout to ChatGPT (v3.5) — the assistant who didn’t just answer, but guided me through a project I didn’t believe was possible.
-
 ✍️ Next Steps
 If you're doing something repetitive every day — chances are it can be automated.
 I didn’t know anything about browser automation when I started this, but curiosity and persistence took care of that.
